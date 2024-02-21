@@ -62,6 +62,20 @@ func (dev *Dev) Integration(ctx context.Context, args []string) error {
 	return test.Integration(ctx, false, filter)
 }
 
+// IntegrationRun runs local integration tests against any cluster.
+func (dev *Dev) IntegrationRun(ctx context.Context, args []string) error {
+	var filter string
+	switch len(args) {
+	case 0:
+		// nothing
+	case 1:
+		filter = args[0]
+	default:
+		return errors.New("only supports a single argument") //nolint:goerr113
+	}
+	return test.IntegrationRun(ctx, false, filter)
+}
+
 // Lint runs local linters to check the codebase.
 func (dev *Dev) Lint(_ context.Context, _ []string) error {
 	return lint.glciCheck()
@@ -75,6 +89,11 @@ func (dev *Dev) LintFix(_ context.Context, _ []string) error {
 // Create the local development cluster.
 func (dev *Dev) Create(ctx context.Context, _ []string) error {
 	return cluster.create(ctx)
+}
+
+// LoadImages into the local development cluster.
+func (dev *Dev) LoadImages(ctx context.Context, _ []string) error {
+	return cluster.loadImages(ctx)
 }
 
 // Destroy the local development cluster.

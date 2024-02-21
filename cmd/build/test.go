@@ -20,16 +20,21 @@ import (
 // Test is a collection of test related functions.
 type Test struct{}
 
-// Integration runs local integration tests in a KinD cluster.
+// Integration prepares a local KinD cluster and runs integration tests against it.
 func (t Test) Integration(ctx context.Context, jsonOutput bool, filter string) error {
 	self := run.Meth2(t, t.Integration, jsonOutput, filter)
 	if err := mgr.ParallelDeps(ctx, self,
-		run.Meth(cluster, cluster.create),
+		run.Meth(cluster, cluster.loadImages),
 		run.Meth(generate, generate.All),
 	); err != nil {
 		return err
 	}
 
+	return t.IntegrationRun(ctx, jsonOutput, filter)
+}
+
+// IntegrationRun runs integration tests against the cluster that your KUBECONFIG is pointing at.
+func (t Test) IntegrationRun(ctx context.Context, jsonOutput bool, filter string) error {
 	var f string
 	if len(filter) > 0 {
 		f = "-run " + filter

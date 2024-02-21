@@ -64,7 +64,6 @@ func (c *Cluster) create(ctx context.Context) error {
 	self := run.Meth(c, c.create)
 	return mgr.SerialDeps(ctx, self,
 		c, // cardboard's internal cluster magic
-		run.Meth1(c, c.loadImages, c.registryPort),
 	)
 }
 
@@ -74,10 +73,16 @@ func (c *Cluster) destroy(ctx context.Context) error {
 }
 
 // Load images into the local development cluster.
-func (c *Cluster) loadImages(ctx context.Context, registryPort int32) error {
-	self := run.Meth1(c, c.loadImages, registryPort)
+func (c *Cluster) loadImages(ctx context.Context) error {
+	self := run.Meth(c, c.loadImages)
 
-	hostPort := fmt.Sprintf("localhost:%d", registryPort)
+	if err := mgr.SerialDeps(ctx, self,
+		run.Meth(c, c.create),
+	); err != nil {
+		return err
+	}
+
+	hostPort := fmt.Sprintf("localhost:%d", c.registryPort)
 	registry := localRegistry(hostPort)
 
 	if err := mgr.ParallelDeps(ctx, self,
