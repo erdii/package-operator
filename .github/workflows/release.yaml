@@ -55,7 +55,7 @@ jobs:
       run: ./do CI:Release
       env:
         VERSION: ${{github.ref_name}}
-        IMAGE_REPO: "${{ vars.REGISTRY }}/${{ vars.NAMESPACE }}"
+        IMAGE_REGISTRY: "${{ vars.REGISTRY }}/${{ vars.NAMESPACE }}"
 
     - uses: cytopia/upload-artifact-retry-action@v0.1.7
       if: ${{ always() }}
