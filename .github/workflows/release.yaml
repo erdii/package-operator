@@ -17,6 +17,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: show remotes
+      run: |
+        git remote -v
+
     - name: Create git tag for submodules
       run: |
         git config user.email "$(git show --format=%ae -s $GITHUB_REF_NAME | tail -1)"
