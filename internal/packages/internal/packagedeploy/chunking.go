@@ -3,6 +3,7 @@ package packagedeploy
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	corev1alpha1 "package-operator.run/apis/core/v1alpha1"
@@ -58,18 +59,20 @@ var (
 	_ objectChunker = (*BinpackNextFitChunker)(nil)
 )
 
+var errInvalidStrategy = errors.New("invalid strategy")
+
 // Returns the chunkingStrategy implementation for the given Package.
-func determineChunkingStrategyForPackage(pkg adapters.GenericPackageAccessor) objectChunker {
+func determineChunkingStrategyForPackage(pkg adapters.GenericPackageAccessor) (objectChunker, error) {
 	strategy := pkg.ClientObject().GetAnnotations()[chunkingStrategyAnnotation]
 	switch chunkingStrategy(strategy) {
 	case chunkingStrategyEachObject:
-		return &EachObjectChunker{}
-	case chunkingStrategyBinpackNextFit:
-		return &BinpackNextFitChunker{}
+		return &EachObjectChunker{}, nil
 	case chunkingStrategyNoOp:
-		return &NoOpChunker{}
+		return &NoOpChunker{}, nil
+	case chunkingStrategyBinpackNextFit, "": // default empty annotation
+		return &BinpackNextFitChunker{}, nil
 	default:
-		return &BinpackNextFitChunker{}
+		return nil, fmt.Errorf("%w: %s", errInvalidStrategy, strategy)
 	}
 }
 

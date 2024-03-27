@@ -167,7 +167,11 @@ func (l *PackageDeployer) Deploy(
 		return fmt.Errorf("creating desired ObjectDeployment: %w", err)
 	}
 
-	chunker := determineChunkingStrategyForPackage(apiPkg)
+	chunker, err := determineChunkingStrategyForPackage(apiPkg)
+	if err != nil {
+		return fmt.Errorf("chunking strategy: %w", err)
+	}
+
 	if err := l.deploymentReconciler.Reconcile(ctx, desiredDeploy, chunker); err != nil {
 		return fmt.Errorf("reconciling ObjectDeployment: %w", err)
 	}

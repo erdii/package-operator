@@ -22,10 +22,12 @@ func Test_determineChunkingStrategyForPackage(t *testing.T) {
 	variants := []struct {
 		strategy chunkingStrategy
 		chunker  objectChunker
+		err      error
 	}{
 		{strategy: chunkingStrategyNoOp, chunker: &NoOpChunker{}},
 		{strategy: chunkingStrategyEachObject, chunker: &EachObjectChunker{}},
-		{strategy: chunkingStrategyBinpackNextFit, chunker: &BinpackNextFitChunker{}},
+		{strategy: "", chunker: &BinpackNextFitChunker{}},
+		{strategy: "urghlwl", err: errInvalidStrategy},
 	}
 
 	for i := range variants {
@@ -43,8 +45,13 @@ func Test_determineChunkingStrategyForPackage(t *testing.T) {
 					},
 				},
 			}
-			c := determineChunkingStrategyForPackage(pkg)
-			assert.IsType(t, variant.chunker, c)
+			c, err := determineChunkingStrategyForPackage(pkg)
+			if variant.err != nil {
+				require.ErrorIs(t, err, variant.err)
+			}
+			if variant.chunker != nil {
+				assert.IsType(t, variant.chunker, c)
+			}
 		})
 	}
 
@@ -56,7 +63,8 @@ func Test_determineChunkingStrategyForPackage(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{},
 			},
 		}
-		c := determineChunkingStrategyForPackage(pkg)
+		c, err := determineChunkingStrategyForPackage(pkg)
+		require.NoError(t, err)
 		assert.IsType(t, &BinpackNextFitChunker{}, c)
 	})
 }
