@@ -151,14 +151,17 @@ func (dev *Dev) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("setting KUBECONFIG env variable: %w", err)
 	}
 
+	// pkoPackageImage := "quay.io/package-operator/package-operator-package:v1.10.0-82-gf1c87024"
+	pkoPackageImage := imageRegistry() + "/package-operator-package:" + appVersion
+
 	goArgs := []string{
 		absGoBinPath,
 		"run",
 		"./cmd/package-operator-manager",
 		"-namespace", "package-operator-system",
 		"-enable-leader-election=true",
-		"-registry-host-overrides", "quay.io=localhost:5001",
-		"--package-operator-package-image", imageRegistry() + "/package-operator-package:" + appVersion,
+		"-registry-host-overrides", imageRegistryHost() + "=localhost:" + fmt.Sprint(devClusterRegistryPort),
+		"--package-operator-package-image", pkoPackageImage,
 	}
 
 	return unix.Exec(absGoBinPath, goArgs, os.Environ())

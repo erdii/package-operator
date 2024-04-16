@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	pat "path"
 
 	"github.com/go-logr/logr"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"package-operator.run/internal/packages"
@@ -107,6 +109,19 @@ func (v *Validate) ValidatePackage(ctx context.Context, opts ...ValidatePackageO
 }
 
 func getPackageFromPath(ctx context.Context, path string) (*packages.RawPackage, error) {
+	ext := pat.Ext(path)
+	if ext == ".tar" || ext == ".tar.gz" {
+		image, err := tarball.ImageFromPath(path, nil)
+		if err != nil {
+			return nil, fmt.Errorf("reading package image from tarball: %w", err)
+		}
+		rawPkg, err := packages.FromOCI(ctx, image)
+		if err != nil {
+			return nil, fmt.Errorf("importing package from image tarball: %w", err)
+		}
+		return rawPkg, nil
+	}
+
 	rawPkg, err := packages.FromFolder(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("importing package from folder: %w", err)
