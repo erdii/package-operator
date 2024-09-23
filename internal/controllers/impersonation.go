@@ -22,6 +22,20 @@ type AutoImpersonatingWriterWrapper struct {
 	reader client.Reader
 }
 
+func NewPotentiallyAutoImpersonatingWriter(
+	enabled bool,
+	restConfig rest.Config,
+	scheme *runtime.Scheme,
+	reader client.Reader,
+) (client.Writer, error) {
+	if !enabled {
+		return client.New(&restConfig, client.Options{})
+	}
+
+	return NewAutoImpersonatingWriter(restConfig, scheme, reader), nil
+}
+
+// reader MUST be a cached client, or else!!!!
 func NewAutoImpersonatingWriter(
 	restConfig rest.Config,
 	scheme *runtime.Scheme,

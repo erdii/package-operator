@@ -20,6 +20,7 @@ func ProvideObjectSetController(
 	mgr ctrl.Manager, log logr.Logger,
 	dc *dynamiccache.Cache,
 	uncachedClient UncachedClient,
+	potentiallyImpersonatingClient PotentiallyImpersonatingClient,
 	recorder *metrics.Recorder,
 ) ObjectSetController {
 	return ObjectSetController{
@@ -29,6 +30,7 @@ func ProvideObjectSetController(
 			mgr.GetScheme(), dc, uncachedClient, recorder,
 			mgr.GetRESTMapper(),
 			*mgr.GetConfig(),
+			potentiallyImpersonatingClient,
 		),
 	}
 }
@@ -37,6 +39,7 @@ func ProvideClusterObjectSetController(
 	mgr ctrl.Manager, log logr.Logger,
 	dc *dynamiccache.Cache,
 	uncachedClient UncachedClient,
+	potentiallyImpersonatingClient PotentiallyImpersonatingClient,
 	recorder *metrics.Recorder,
 ) ClusterObjectSetController {
 	return ClusterObjectSetController{
@@ -46,6 +49,7 @@ func ProvideClusterObjectSetController(
 			mgr.GetScheme(), dc, uncachedClient, recorder,
 			mgr.GetRESTMapper(),
 			*mgr.GetConfig(),
+			potentiallyImpersonatingClient,
 		),
 	}
 }

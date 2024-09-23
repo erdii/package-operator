@@ -3,4 +3,4 @@ kind: Package
 metadata:
   name: my-nginx
 spec:
-  image: quay.io/package-operator/nginx-package:e9e4e0e
+  image: quay.io/erdii-test/nginx-package:e9e4e0e

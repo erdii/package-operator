@@ -68,6 +68,7 @@ func NewObjectSetController(
 	dw dynamicCache, uc client.Reader,
 	r metricsRecorder, restMapper meta.RESTMapper,
 	restConfig rest.Config,
+	autoImpersonatingWriter autoImpersonatingWriter,
 ) *GenericObjectSetController {
 	return newGenericObjectSetController(
 		newGenericObjectSet,
@@ -75,6 +76,7 @@ func NewObjectSetController(
 		adapters.NewObjectSlice,
 		c, log, scheme, dw, uc, r,
 		restMapper, restConfig,
+		autoImpersonatingWriter,
 	)
 }
 
@@ -84,6 +86,7 @@ func NewClusterObjectSetController(
 	dw dynamicCache, uc client.Reader,
 	r metricsRecorder, restMapper meta.RESTMapper,
 	restConfig rest.Config,
+	autoImpersonatingWriter autoImpersonatingWriter,
 ) *GenericObjectSetController {
 	return newGenericObjectSetController(
 		newGenericClusterObjectSet,
@@ -91,7 +94,13 @@ func NewClusterObjectSetController(
 		adapters.NewClusterObjectSlice,
 		c, log, scheme, dw, uc, r,
 		restMapper, restConfig,
+		autoImpersonatingWriter,
 	)
+}
+
+type autoImpersonatingWriter interface {
+	client.Writer
+	Impersonate()
 }
 
 func newGenericObjectSetController(
@@ -103,6 +112,7 @@ func newGenericObjectSetController(
 	dynamicCache dynamicCache, uncachedClient client.Reader,
 	recorder metricsRecorder, restMapper meta.RESTMapper,
 	restConfig rest.Config,
+	impersonatingClient autoImpersonatingWriter,
 ) *GenericObjectSetController {
 	controller := &GenericObjectSetController{
 		newObjectSet:      newObjectSet,
@@ -114,9 +124,6 @@ func newGenericObjectSetController(
 		dynamicCache: dynamicCache,
 		recorder:     recorder,
 	}
-	impersonatingClient := controllers.NewAutoImpersonatingWriter(
-		restConfig, scheme, client,
-	)
 
 	phasesReconciler := newObjectSetPhasesReconciler(
 		scheme,
